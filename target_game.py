@@ -9,12 +9,15 @@ class Target:
     NUM_CIRCLE = 2
 
     def __init__(self, center):
+        #Constructor for a target. An instance of a target is add iff there is space for it in the array, it is within the screen, and it is not 
+        #touching another circle
         self.radius = 0
         self.center = center
         self.reach_max = False
         if len(Target.current_targets) < Target.NUM_CIRCLE and Target.circle_inside(center) and not self.check_collision():
             Target.current_targets.append(self)
     
+    #Check if circle touch each other. NOT WORKING
     def check_collision(self):
         c1_x, c1_y = self.center
         for target in Target.current_targets:
@@ -24,6 +27,9 @@ class Target:
                 return True
         return False
 
+    #Increase or decrease the radius of a circle depnding on if it has reached its max radius or not
+    #If it's radius is 0 and it has reached its max radius then it is removed from the list of current targets
+    #and returns true to tell user that it has missed a target
     @classmethod
     def vary(cls):
         for target in Target.current_targets:
@@ -37,6 +43,7 @@ class Target:
                 cls.current_targets.remove(target)
                 return True
     
+    #Draws target of multiple circles to make it look more like a target
     @classmethod
     def draw(cls):
         for target in Target.current_targets:
@@ -45,6 +52,7 @@ class Target:
             pygame.draw.circle(window, LIGHT_ORANGE, target.center, math.floor(target.radius * 0.50))
             pygame.draw.circle(window, WHITE_ORANGE, target.center, math.floor(target.radius * 0.25))
 
+    #Check if pointer has touched a target
     @classmethod
     def hit_check(cls, m_x, m_y):
         for target in Target.current_targets:
@@ -55,6 +63,7 @@ class Target:
                 return True
         return False
 
+    #Check if circle is within the screen
     @classmethod 
     def circle_inside(cls, center):
         x,y = center
@@ -63,16 +72,18 @@ class Target:
                 return True
         return False
 
+    #Increases diffciulty of game by 1 circle
     @classmethod
     def increase_difficulty(cls):
         cls.NUM_CIRCLE += 1
 
+    #Resets target class variables to original if user wants to play again
     @classmethod
     def reset(cls):
         cls.NUM_CIRCLE = 2
         del cls.current_targets[:]
 
-
+#Plays a sound, adds sound to library if not in there already
 def play_sound(path):
     sound = SOUND_LIBRARY.get(path)
     if sound == None:
@@ -80,20 +91,24 @@ def play_sound(path):
         SOUND_LIBRARY[path] = sound
     sound.play()
 
+#Displays score to screen
 def display_score(score):
-    score = MEDIUM_FONT.render(f"{score}", True, BLACK)
+    score = SCORE_FONT.render(f"{score}", True, BLACK)
     window.blit(score, (40,70))
 
+#Displays game over message
 def game_over():
     message = LARGE_FONT.render('Game Over!', True, BLACK)
     window.blit(message, (SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 200))
     play_again = MEDIUM_FONT.render('Press Q to Exit or R to Restart!', True, BLACK)
-    window.blit(play_again, (75, 380))
+    window.blit(play_again, (200, 400))
 
+#Main game loop
 def game_loop():
     run = True
     score = 0
     miss = 0
+    total_targets = 0
     clock = pygame.time.Clock() 
     while run:
         while miss == 3:
@@ -117,6 +132,7 @@ def game_loop():
                     score += 1
                     if score != 0 and score % 10 == 0:
                         Target.increase_difficulty()
+                        total_targets += Target.NUM_CIRCLE
                     play_sound('pop.wav')
                 else:
                     play_sound('bullet.wav')
@@ -125,7 +141,7 @@ def game_loop():
         if Target.vary():
             play_sound('miss.wav')
             miss += 1
-
+    
         window.fill(WHITE)
         Target.draw()
         display_score(score)
@@ -138,6 +154,7 @@ def game_loop():
 pygame.font.init()
 pygame.init()
 
+#Option variables
 WHITE_ORANGE = (255,225,164)
 DARK_ORANGE = (255,189,55)
 LIGHT_ORANGE = (255,217,139)
@@ -146,8 +163,9 @@ WHITE = (255,255,255)
 BLACK = (0,0,0)
 SCREEN_HEIGHT = 1000
 SCREEN_WIDTH = 700
-LARGE_FONT = pygame.font.SysFont("Bit5x3 Regular", 100)
-MEDIUM_FONT = pygame.font.SysFont("Bit5x3 Regular", 50)
+LARGE_FONT = pygame.font.SysFont("Arial", 100)
+MEDIUM_FONT = pygame.font.SysFont("Arial", 50)
+SCORE_FONT = pygame.font.SysFont("Bit5x3 Regular", 50)
 SOUND_LIBRARY = {}
 
 window = pygame.display.set_mode((SCREEN_HEIGHT,SCREEN_WIDTH))
