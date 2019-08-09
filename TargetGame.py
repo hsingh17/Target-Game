@@ -1,3 +1,4 @@
+#!/usr/bin/env python3 
 import pygame
 import random
 import time
@@ -17,7 +18,6 @@ class Target:
         if len(Target.current_targets) < Target.NUM_CIRCLE and Target.circle_inside(center) and not self.check_collision():
             Target.current_targets.append(self)
     
-    #Check if circle touch each other. NOT WORKING
     def check_collision(self):
         c1_x, c1_y = self.center
         for target in Target.current_targets:
@@ -92,9 +92,11 @@ def play_sound(path):
     sound.play()
 
 #Displays score to screen
-def display_score(score):
+def display_score(score,combo):
     score = SCORE_FONT.render(f"{score}", True, BLACK)
     window.blit(score, (40,70))
+    combo = SCORE_FONT.render(f"{combo}", True, BLACK)
+    window.blit(combo, (40,140))
 
 #Displays game over message
 def game_over():
@@ -108,6 +110,7 @@ def game_loop():
     run = True
     score = 0
     miss = 0
+    combo = 0
     total_targets = 0
     clock = pygame.time.Clock() 
     while run:
@@ -130,21 +133,23 @@ def game_loop():
                 x,y = pygame.mouse.get_pos()
                 if Target.hit_check(x,y):
                     score += 1
+                    combo +=1
                     if score != 0 and score % 10 == 0:
                         Target.increase_difficulty()
                         total_targets += Target.NUM_CIRCLE
-                    play_sound('pop.wav')
+                    play_sound('audio/pop.wav')
                 else:
-                    play_sound('bullet.wav')
+                    combo = 0
+                    play_sound('audio/bullet.wav')
         
         new_target = Target((random.randint(1, SCREEN_HEIGHT), random.randint(1, SCREEN_WIDTH)))
         if Target.vary():
-            play_sound('miss.wav')
+            play_sound('audio/miss.wav')
             miss += 1
     
         window.fill(WHITE)
         Target.draw()
-        display_score(score)
+        display_score(score,combo)
         clock.tick(30)
         pygame.display.update()
 
